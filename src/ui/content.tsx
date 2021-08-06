@@ -1,12 +1,30 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import "./template.css";
+import "./main.css";
+import {useCallback, useState} from "react";
 
 const Alert = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
+
+    const onOpenInfo =  useCallback(() => {
+        setIsOpen(!isOpen);
+    }, [isOpen])
+
+    const onClose = useCallback(() => {
+        setIsVisible(false);
+    }, [])
+
+    const buttonText = isOpen ? "Свернуть" :  "Развернуть"
+
+    if (!isVisible) {
+        return null;
+    }
+
   return (
     <div className="fishing-container">
       <div className="fishing-container_close-block">
-        <button className="fishing-container_close-button">
+        <button className="fishing-container_close-button" onClick={onClose}>
           <span className="fishing-container_close-button_text">×</span>
         </button>
       </div>
@@ -14,7 +32,8 @@ const Alert = () => {
       <p className="fishing-container_warning">
         Мы считаем, что этот сайт фишинговый и не безопасен для использования
       </p>
-      <div className="fishing-container_reasons-block">
+        {isOpen &&
+        <div className="fishing-container_reasons-block">
         <p className="fishing-container_reasons-block_text">
           Ниже представлены критерии, которыми мы руководствуемся:
         </p>
@@ -23,9 +42,9 @@ const Alert = () => {
           <li className="fishing-container_reasons-block_list_element"></li>
           <li className="fishing-container_reasons-block_list_element"></li>
         </ul>
-      </div>
+      </div>}
       <div className="fishing-container_expand-block">
-        <button className="fishing-container_expand-button">Развернуть</button>
+        <button className="fishing-container_expand-button" onClick={onOpenInfo}>{buttonText}</button>
       </div>
     </div>
   );

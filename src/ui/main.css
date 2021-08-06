@@ -1,4 +1,4 @@
-* {
+.fishing-container {
   font-family: sans-serif;
 }
 
@@ -24,19 +24,30 @@
 
 .fishing-container_close-button,
 .fishing-container_expand-button {
+  color: black;
   font-size: 15px;
-  border: 1px solid black;
-  text-align: center;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
 }
+
+.fishing-container_close-button:hover,
+.fishing-container_expand-button:hover {
+  background-color: darkgray;
+}
+
 
 .fishing-container_close-button_text {
   margin-bottom: -5px;
+  font-size: 25px;
 }
 
 .fishing-container_close-button {
+  height: 25px;
   width: 25px;
 }
 
 .fishing-container_expand-button {
-  width: 100px;
+  height: 40px;
+  width: 150px;
 }
