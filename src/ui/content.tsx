@@ -11,34 +11,41 @@ const getWhoisInfo = (domain: string) => {
 };
 
 const isInvalidAmountOfDots = (domain: string) => {
-    let splitDomain = domain.split(".");
-    return splitDomain.length >= 4;
-}
+  let splitDomain = domain.split(".");
+  return splitDomain.length >= 4;
+};
 
 const isNotHTTPS = (domain: string) => {
-    return location.protocol !== "https";
-}
+  return location.protocol !== "https";
+};
 
+const isDomainFishing = (domain: string, date: string, isLoxotron: boolean) => {
+  let result = countScoreByCreationDate(date);
+  if (isInvalidAmountOfDots(domain)) {
+    result += 10;
+  }
 
-const idDomainFishing = (domain: string, date: string) => {
-    let result = countScoreByCreationDate(date);
-    if (isInvalidAmountOfDots(domain)) {
-        result += 10;
-    }
+  if (isNotHTTPS(domain)) {
+    result += 20;
+  }
 
-    if (isNotHTTPS(domain)) {
-        result += 20;
-    }
+  if (isLoxotron) {
+    result += 90;
+  }
 
-    return result >= 90;
-}
+  return result >= 90;
+};
 
 const countScoreByCreationDate = (date: string) => {
-    const today = dayjs();
-    const formatDate = dayjs(date);
-    const lifeDuration = today.diff(formatDate, "week");
-    return ((1 - (Math.tan(0.3*lifeDuration  - 4)/(Math.PI/2))) / (1 - (Math.tan(0.3*2  - 4)/(Math.PI/2)))) * 100;
-}
+  const today = dayjs();
+  const formatDate = dayjs(date);
+  const lifeDuration = today.diff(formatDate, "week");
+  return (
+    ((1 - Math.tan(0.3 * lifeDuration - 4) / (Math.PI / 2)) /
+      (1 - Math.tan(0.3 * 2 - 4) / (Math.PI / 2))) *
+    100
+  );
+};
 
 const checkIsDateValid = (date: string) => {
   const today = dayjs();
@@ -46,11 +53,16 @@ const checkIsDateValid = (date: string) => {
   return today.diff(formatDate, "week") > 2;
 };
 
+const getLoxotronStatus = (href: string) => {
+  return fetch(`https://loxotrons.ru/api/v1/check/${href}`);
+};
+
 const Alert: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState("");
   const [isFishing, setIsFishing] = useState(false);
   const [isDateInvalid, setIsDateInvalid] = useState(false);
+  const [isLoxotron, setIsLoxotron] = useState(false);
 
   const onOpenInfo = useCallback(() => {
     setIsOpen(!isOpen);
@@ -61,24 +73,35 @@ const Alert: React.FC = () => {
   }, []);
 
   const calculateFishing = useCallback(() => {
-      setIsFishing(idDomainFishing(domain, date));
-  },[])
+    setIsFishing(isDomainFishing(domain, date, isLoxotron));
+  }, []);
 
   const buttonText = isOpen ? "Свернуть" : "Почему?";
   const domain = location.href;
 
   useEffect(() => {
-    getWhoisInfo(domain)
-      .then((res) => res.json())
-      .then((json) => {
-        setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
-        setIsDateInvalid(
-          !checkIsDateValid(
-            json.WhoisRecord.registryData.createdDate.split("T")[0]
-          )
-        );
-        calculateFishing();
-      });
+    Promise.all([
+      getWhoisInfo(domain)
+        .then((res) => res.json())
+        .then((json) => {
+          setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
+          setIsDateInvalid(
+            !checkIsDateValid(
+              json.WhoisRecord.registryData.createdDate.split("T")[0]
+            )
+          );
+        }),
+      getLoxotronStatus(location.href.split("?")[0].split("/")[2])
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.records?.length > 0) {
+            const result = json.records[0].trust_id;
+            if ([1, 2, 3, 6, 7].includes(result)) {
+              setIsLoxotron(true);
+            }
+          }
+        }),
+    ]).then((_) => calculateFishing());
   }, []);
 
   if (!isFishing) {
@@ -104,18 +127,21 @@ const Alert: React.FC = () => {
             Ниже представлены критерии, которыми мы руководствуемся:
           </p>
           <ul className="fishing-container_reasons-block_list">
-              {isDateInvalid &&
+            {isDateInvalid && (
               <li className="fishing-container_reasons-block_list_element">
-                  Сайт создан в последние две недели
-              </li>}
-              {isInvalidAmountOfDots(domain) &&
+                Сайт создан в последние две недели
+              </li>
+            )}
+            {isInvalidAmountOfDots(domain) && (
               <li className="fishing-container_reasons-block_list_element">
-                  Домен сайта выше третьего уровня
-              </li>}
-              {isNotHTTPS(domain) &&
+                Домен сайта выше третьего уровня
+              </li>
+            )}
+            {isNotHTTPS(domain) && (
               <li className="fishing-container_reasons-block_list_element">
-                  Сайт не использует HTTPS
-              </li>}
+                Сайт не использует HTTPS
+              </li>
+            )}
           </ul>
         </div>
       )}
