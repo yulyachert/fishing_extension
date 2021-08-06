@@ -4,14 +4,41 @@ import "./main.css";
 import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
 
-const apiKey =
-  "f7105de9cc5e002b49808b50f9cf933ee3eb1a2f1b6be75676483f4e9b98f307";
-
 const getWhoisInfo = (domain: string) => {
   return fetch(
     `https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=at_IXAd34qkPOZBJ2wX17X3BJwyXU3pH&outputFormat=JSON&domainName=${domain}`
   );
 };
+
+const isInvalidAmountOfDots = (domain: string) => {
+    let splitDomain = domain.split(".");
+    return splitDomain.length >= 4;
+}
+
+const isNotHTTPS = (domain: string) => {
+    return location.protocol !== "https";
+}
+
+
+const idDomainFishing = (domain: string, date: string) => {
+    let result = countScoreByCreationDate(date);
+    if (isInvalidAmountOfDots(domain)) {
+        result += 10;
+    }
+
+    if (isNotHTTPS(domain)) {
+        result += 20;
+    }
+
+    return result >= 90;
+}
+
+const countScoreByCreationDate = (date: string) => {
+    const today = dayjs();
+    const formatDate = dayjs(date);
+    const lifeDuration = today.diff(formatDate, "week");
+    return ((1 - (Math.tan(0.3*lifeDuration  - 4)/(Math.PI/2))) / (1 - (Math.tan(0.3*2  - 4)/(Math.PI/2)))) * 100;
+}
 
 const checkIsDateValid = (date: string) => {
   const today = dayjs();
@@ -19,16 +46,11 @@ const checkIsDateValid = (date: string) => {
   return today.diff(formatDate, "week") > 2;
 };
 
-const getInfoByVirusTotal = (href: string) => {
-  return fetch(
-    `https://www.virustotal.com/vtapi/v2/url/report?api_key=${apiKey}&resource=${href}`
-  );
-};
-
 const Alert: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState("");
   const [isFishing, setIsFishing] = useState(false);
+  const [isDateInvalid, setIsDateInvalid] = useState(false);
 
   const onOpenInfo = useCallback(() => {
     setIsOpen(!isOpen);
@@ -38,24 +60,25 @@ const Alert: React.FC = () => {
     setIsFishing(false);
   }, []);
 
+  const calculateFishing = useCallback(() => {
+      setIsFishing(idDomainFishing(domain, date));
+  },[])
+
   const buttonText = isOpen ? "Свернуть" : "Почему?";
+  const domain = location.href;
 
   useEffect(() => {
-    getWhoisInfo(location.href)
+    getWhoisInfo(domain)
       .then((res) => res.json())
       .then((json) => {
         setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
-        setIsFishing(
+        setIsDateInvalid(
           !checkIsDateValid(
             json.WhoisRecord.registryData.createdDate.split("T")[0]
           )
         );
+        calculateFishing();
       });
-    // getInfoByVirusTotal(location.href)
-    //     .then((res) => res.json())
-    //     .then((json) => {
-    //         console.log(json);
-    //     })
   }, []);
 
   if (!isFishing) {
@@ -81,9 +104,18 @@ const Alert: React.FC = () => {
             Ниже представлены критерии, которыми мы руководствуемся:
           </p>
           <ul className="fishing-container_reasons-block_list">
-            <li className="fishing-container_reasons-block_list_element">
-              Сайт создан в последние две недели
-            </li>
+              {isDateInvalid &&
+              <li className="fishing-container_reasons-block_list_element">
+                  Сайт создан в последние две недели
+              </li>}
+              {isInvalidAmountOfDots(domain) &&
+              <li className="fishing-container_reasons-block_list_element">
+                  Домен сайта выше третьего уровня
+              </li>}
+              {isNotHTTPS(domain) &&
+              <li className="fishing-container_reasons-block_list_element">
+                  Сайт не использует HTTPS
+              </li>}
           </ul>
         </div>
       )}
