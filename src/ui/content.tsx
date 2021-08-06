@@ -1,7 +1,10 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import "./main.css";
-import { useCallback, useState } from "react";
+import {useCallback, useEffect, useState} from "react";
+import dayjs from "dayjs";
+
+const apiKey = "f7105de9cc5e002b49808b50f9cf933ee3eb1a2f1b6be75676483f4e9b98f307";
 
 const getWhoisInfo = (domain: string) => {
   return fetch(
@@ -9,11 +12,23 @@ const getWhoisInfo = (domain: string) => {
   );
 };
 
+const checkIsDateValid = (date: string) => {
+    const today = dayjs();
+    return today.diff(date, "week") > 2;
+}
+
+const getInfoByVirusTotal = (href: string) => {
+    return fetch(
+        `https://www.virustotal.com/vtapi/v2/url/report?api_key=${apiKey}&resource=${href}`
+    );
+}
+
 const Alert: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [date, setDate] = useState("");
+  const [isFishing, setIsFishing] = useState(false);
 
-  const onOpenInfo = useCallback(() => {
+    const onOpenInfo = useCallback(() => {
     setIsOpen(!isOpen);
   }, [isOpen]);
 
@@ -23,21 +38,29 @@ const Alert: React.FC = () => {
 
   const buttonText = isOpen ? "Свернуть" : "Развернуть";
 
-  if (!isVisible) {
-    return null;
-  }
+  const [isVisible, setIsVisible] = useState(isFishing);
 
-  const [url, setUrl] = React.useState(new Date());
-  React.useEffect(() => {
+  useEffect(() => {
     getWhoisInfo(location.href)
       .then((res) => res.json())
-      .then((json) =>
-        setUrl(new Date(json.WhoisRecord.registryData.createdDate))
+      .then((json) => {
+              setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
+              setIsFishing(!checkIsDateValid(date));
+          }
       );
+      getInfoByVirusTotal(location.href)
+          .then((res) => res.json())
+          .then((json) => {
+              console.log(json);
+          })
   }, []);
 
-  return (
-    <div className="fishing-container">
+    if (!isFishing) {
+        return null;
+    }
+
+  return (isVisible &&
+      <div className="fishing-container">
       <div className="fishing-container_close-block">
         <button className="fishing-container_close-button" onClick={onClose}>
           <span className="fishing-container_close-button_text">×</span>
@@ -67,7 +90,6 @@ const Alert: React.FC = () => {
           {buttonText}
         </button>
       </div>
-      <div>{Intl.DateTimeFormat("ru").format(url)}</div>
     </div>
   );
 };
