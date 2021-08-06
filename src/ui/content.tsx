@@ -15,8 +15,8 @@ const isInvalidAmountOfDots = (domain: string) => {
   return splitDomain.length >= 4;
 };
 
-const isNotHTTPS = (domain: string) => {
-  return location.protocol !== "https";
+const isNotHTTPS = () => {
+  return location.protocol !== "https:";
 };
 
 const isDomainFishing = (domain: string, date: string, isLoxotron: boolean) => {
@@ -25,13 +25,15 @@ const isDomainFishing = (domain: string, date: string, isLoxotron: boolean) => {
     result += 10;
   }
 
-  if (isNotHTTPS(domain)) {
+  if (isNotHTTPS()) {
     result += 20;
   }
 
   if (isLoxotron) {
     result += 90;
   }
+
+  console.log(result);
 
   return result >= 90;
 };
@@ -40,9 +42,10 @@ const countScoreByCreationDate = (date: string) => {
   const today = dayjs();
   const formatDate = dayjs(date);
   const lifeDuration = today.diff(formatDate, "week");
+
   return (
-    ((1 - Math.tan(0.3 * lifeDuration - 4) / (Math.PI / 2)) /
-      (1 - Math.tan(0.3 * 2 - 4) / (Math.PI / 2))) *
+    ((1 - Math.atan(0.3 * lifeDuration - 4) / (Math.PI / 2)) /
+      (1 - Math.atan(0.3 * 2 - 4) / (Math.PI / 2))) *
     100
   );
 };
@@ -59,10 +62,11 @@ const getLoxotronStatus = (href: string) => {
 
 const Alert: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [date, setDate] = useState("");
   const [isFishing, setIsFishing] = useState(false);
   const [isDateInvalid, setIsDateInvalid] = useState(false);
-  const [isLoxotron, setIsLoxotron] = useState(false);
+  const [isLoxotronState, setIsLoxotronState] = useState(false);
+  let date = "";
+  let isLoxotron = false;
 
   const onOpenInfo = useCallback(() => {
     setIsOpen(!isOpen);
@@ -74,7 +78,7 @@ const Alert: React.FC = () => {
 
   const calculateFishing = useCallback(() => {
     setIsFishing(isDomainFishing(domain, date, isLoxotron));
-  }, []);
+  }, [date, isLoxotron]);
 
   const buttonText = isOpen ? "Свернуть" : "Почему?";
   const domain = location.href;
@@ -84,7 +88,7 @@ const Alert: React.FC = () => {
       getWhoisInfo(domain)
         .then((res) => res.json())
         .then((json) => {
-          setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
+          date = json.WhoisRecord.registryData.createdDate.split("T")[0];
           setIsDateInvalid(
             !checkIsDateValid(
               json.WhoisRecord.registryData.createdDate.split("T")[0]
@@ -97,7 +101,9 @@ const Alert: React.FC = () => {
           if (json.records?.length > 0) {
             const result = json.records[0].trust_id;
             if ([1, 2, 3, 6, 7].includes(result)) {
-              setIsLoxotron(true);
+              console.log(result);
+              isLoxotron = true;
+              setIsLoxotronState(true);
             }
           }
         }),
@@ -137,9 +143,14 @@ const Alert: React.FC = () => {
                 Домен сайта выше третьего уровня
               </li>
             )}
-            {isNotHTTPS(domain) && (
+            {isNotHTTPS() && (
               <li className="fishing-container_reasons-block_list_element">
                 Сайт не использует HTTPS
+              </li>
+            )}
+            {isLoxotronState && (
+              <li className="fishing-container_reasons-block_list_element">
+                Сайт был обнаружен в базе фишинговых сайтов
               </li>
             )}
           </ul>
