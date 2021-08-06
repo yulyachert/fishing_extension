@@ -1,0 +1,11 @@
+{
+  "name": "fishing_extension",
+  "version": "1.0.0",
+  "repository": "https://github.com/yulyachert/fishing_extension",
+  "author": "finkrer <finkrer@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/chrome": "^0.0.154"
+  }
+}

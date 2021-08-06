@@ -16,5 +16,18 @@
   "icons": {
     "48": "fish.png"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["template.html"],
+      "matches": ["<all_urls>", "http://*/*", "https://*/*"]
+    }
+  ]
 }
