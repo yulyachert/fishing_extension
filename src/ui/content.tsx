@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import "./main.css";
+import "../styles/main.css";
 import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
 
@@ -32,8 +32,6 @@ const isDomainFishing = (domain: string, date: string, isLoxotron: boolean) => {
   if (isLoxotron) {
     result += 90;
   }
-
-  console.log(result);
 
   return result >= 90;
 };
@@ -101,7 +99,6 @@ const Alert: React.FC = () => {
           if (json.records?.length > 0) {
             const result = json.records[0].trust_id;
             if ([1, 2, 3, 6, 7].includes(result)) {
-              console.log(result);
               isLoxotron = true;
               setIsLoxotronState(true);
             }
