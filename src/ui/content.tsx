@@ -14,7 +14,8 @@ const getWhoisInfo = (domain: string) => {
 
 const checkIsDateValid = (date: string) => {
     const today = dayjs();
-    return today.diff(date, "week") > 2;
+    const formatDate = dayjs(date)
+    return today.diff(formatDate, "week") > 2;
 }
 
 const getInfoByVirusTotal = (href: string) => {
@@ -33,33 +34,31 @@ const Alert: React.FC = () => {
   }, [isOpen]);
 
   const onClose = useCallback(() => {
-    setIsVisible(false);
+    setIsFishing(false);
   }, []);
 
   const buttonText = isOpen ? "Свернуть" : "Развернуть";
-
-  const [isVisible, setIsVisible] = useState(isFishing);
 
   useEffect(() => {
     getWhoisInfo(location.href)
       .then((res) => res.json())
       .then((json) => {
               setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
-              setIsFishing(!checkIsDateValid(date));
+              setIsFishing(!checkIsDateValid(json.WhoisRecord.registryData.createdDate.split("T")[0]));
           }
       );
-      getInfoByVirusTotal(location.href)
-          .then((res) => res.json())
-          .then((json) => {
-              console.log(json);
-          })
+      // getInfoByVirusTotal(location.href)
+      //     .then((res) => res.json())
+      //     .then((json) => {
+      //         console.log(json);
+      //     })
   }, []);
 
     if (!isFishing) {
         return null;
     }
 
-  return (isVisible &&
+  return (
       <div className="fishing-container">
       <div className="fishing-container_close-block">
         <button className="fishing-container_close-button" onClick={onClose}>
