@@ -1,10 +1,11 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import "./main.css";
-import {useCallback, useEffect, useState} from "react";
+import { useCallback, useEffect, useState } from "react";
 import dayjs from "dayjs";
 
-const apiKey = "f7105de9cc5e002b49808b50f9cf933ee3eb1a2f1b6be75676483f4e9b98f307";
+const apiKey =
+  "f7105de9cc5e002b49808b50f9cf933ee3eb1a2f1b6be75676483f4e9b98f307";
 
 const getWhoisInfo = (domain: string) => {
   return fetch(
@@ -13,23 +14,23 @@ const getWhoisInfo = (domain: string) => {
 };
 
 const checkIsDateValid = (date: string) => {
-    const today = dayjs();
-    const formatDate = dayjs(date)
-    return today.diff(formatDate, "week") > 2;
-}
+  const today = dayjs();
+  const formatDate = dayjs(date);
+  return today.diff(formatDate, "week") > 2;
+};
 
 const getInfoByVirusTotal = (href: string) => {
-    return fetch(
-        `https://www.virustotal.com/vtapi/v2/url/report?api_key=${apiKey}&resource=${href}`
-    );
-}
+  return fetch(
+    `https://www.virustotal.com/vtapi/v2/url/report?api_key=${apiKey}&resource=${href}`
+  );
+};
 
 const Alert: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState("");
   const [isFishing, setIsFishing] = useState(false);
 
-    const onOpenInfo = useCallback(() => {
+  const onOpenInfo = useCallback(() => {
     setIsOpen(!isOpen);
   }, [isOpen]);
 
@@ -37,37 +38,42 @@ const Alert: React.FC = () => {
     setIsFishing(false);
   }, []);
 
-  const buttonText = isOpen ? "Свернуть" : "Развернуть";
+  const buttonText = isOpen ? "Свернуть" : "Почему?";
 
   useEffect(() => {
     getWhoisInfo(location.href)
       .then((res) => res.json())
       .then((json) => {
-              setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
-              setIsFishing(!checkIsDateValid(json.WhoisRecord.registryData.createdDate.split("T")[0]));
-          }
-      );
-      // getInfoByVirusTotal(location.href)
-      //     .then((res) => res.json())
-      //     .then((json) => {
-      //         console.log(json);
-      //     })
+        setDate(json.WhoisRecord.registryData.createdDate.split("T")[0]);
+        setIsFishing(
+          !checkIsDateValid(
+            json.WhoisRecord.registryData.createdDate.split("T")[0]
+          )
+        );
+      });
+    // getInfoByVirusTotal(location.href)
+    //     .then((res) => res.json())
+    //     .then((json) => {
+    //         console.log(json);
+    //     })
   }, []);
 
-    if (!isFishing) {
-        return null;
-    }
+  if (!isFishing) {
+    return null;
+  }
 
   return (
-      <div className="fishing-container">
+    <div className="fishing-container">
       <div className="fishing-container_close-block">
         <button className="fishing-container_close-button" onClick={onClose}>
           <span className="fishing-container_close-button_text">×</span>
         </button>
       </div>
-      <h1 className="fishing-container_title">Fishing detector</h1>
+      <h1 className="fishing-container_title">Осторожно, опасный сайт</h1>
       <p className="fishing-container_warning">
-        Мы считаем, что этот сайт фишинговый и не безопасен для использования
+        Мы считаем, что этот сайт фишинговый и небезопасен для использования.
+        Рекомендуем покинуть этот сайт, чтобы не подвергаться риску утечки
+        личных данных.
       </p>
       {isOpen && (
         <div className="fishing-container_reasons-block">
@@ -75,9 +81,9 @@ const Alert: React.FC = () => {
             Ниже представлены критерии, которыми мы руководствуемся:
           </p>
           <ul className="fishing-container_reasons-block_list">
-            <li className="fishing-container_reasons-block_list_element"></li>
-            <li className="fishing-container_reasons-block_list_element"></li>
-            <li className="fishing-container_reasons-block_list_element"></li>
+            <li className="fishing-container_reasons-block_list_element">
+              Сайт создан в последние две недели
+            </li>
           </ul>
         </div>
       )}
