@@ -1,0 +1,20 @@
+{
+  "name": "Fishing detector",
+  "description": "Extension for detecting fishing sites",
+  "version": "1.0",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "fish.png"
+    }
+  },
+  "icons": {
+    "48": "fish.png"
+  },
+  "options_page": "options.html"
+}
