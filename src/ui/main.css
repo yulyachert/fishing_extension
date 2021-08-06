@@ -1,0 +1,42 @@
+* {
+  font-family: sans-serif;
+}
+
+.fishing-container {
+  padding: 25px 20px;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  background-color: firebrick;
+  color: white;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid white;
+}
+
+.fishing-container_close-block,
+.fishing-container_expand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.fishing-container_close-button,
+.fishing-container_expand-button {
+  font-size: 15px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.fishing-container_close-button_text {
+  margin-bottom: -5px;
+}
+
+.fishing-container_close-button {
+  width: 25px;
+}
+
+.fishing-container_expand-button {
+  width: 100px;
+}
