@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 
 const getWhoisInfo = (domain: string) => {
   return fetch(
-    `https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=at_IXAd34qkPOZBJ2wX17X3BJwyXU3pH&outputFormat=JSON&domainName=${domain}`
+    `https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=at_RCJyU4cgKVg8TBfq029Y6UAshHg63&outputFormat=JSON&domainName=${domain}`
   );
 };
 
