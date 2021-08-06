@@ -21,7 +21,8 @@
     {
       "matches": ["http://*/*", "https://*/*", "<all_urls>"],
       "js": ["content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "css" : ["template.css"]
     }
   ],
   "web_accessible_resources": [
