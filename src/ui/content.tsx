@@ -1,25 +1,40 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import "./main.css";
-import {useCallback, useState} from "react";
+import { useCallback, useState } from "react";
 
-const Alert = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [isVisible, setIsVisible] = useState(true);
+const getWhoisInfo = (domain: string) => {
+  return fetch(
+    `https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=at_IXAd34qkPOZBJ2wX17X3BJwyXU3pH&outputFormat=JSON&domainName=${domain}`
+  );
+};
 
-    const onOpenInfo =  useCallback(() => {
-        setIsOpen(!isOpen);
-    }, [isOpen])
+const Alert: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
-    const onClose = useCallback(() => {
-        setIsVisible(false);
-    }, [])
+  const onOpenInfo = useCallback(() => {
+    setIsOpen(!isOpen);
+  }, [isOpen]);
 
-    const buttonText = isOpen ? "Свернуть" :  "Развернуть"
+  const onClose = useCallback(() => {
+    setIsVisible(false);
+  }, []);
 
-    if (!isVisible) {
-        return null;
-    }
+  const buttonText = isOpen ? "Свернуть" : "Развернуть";
+
+  if (!isVisible) {
+    return null;
+  }
+
+  const [url, setUrl] = React.useState(new Date());
+  React.useEffect(() => {
+    getWhoisInfo(location.href)
+      .then((res) => res.json())
+      .then((json) =>
+        setUrl(new Date(json.WhoisRecord.registryData.createdDate))
+      );
+  }, []);
 
   return (
     <div className="fishing-container">
@@ -32,20 +47,27 @@ const Alert = () => {
       <p className="fishing-container_warning">
         Мы считаем, что этот сайт фишинговый и не безопасен для использования
       </p>
-        {isOpen &&
+      {isOpen && (
         <div className="fishing-container_reasons-block">
-        <p className="fishing-container_reasons-block_text">
-          Ниже представлены критерии, которыми мы руководствуемся:
-        </p>
-        <ul className="fishing-container_reasons-block_list">
-          <li className="fishing-container_reasons-block_list_element"></li>
-          <li className="fishing-container_reasons-block_list_element"></li>
-          <li className="fishing-container_reasons-block_list_element"></li>
-        </ul>
-      </div>}
+          <p className="fishing-container_reasons-block_text">
+            Ниже представлены критерии, которыми мы руководствуемся:
+          </p>
+          <ul className="fishing-container_reasons-block_list">
+            <li className="fishing-container_reasons-block_list_element"></li>
+            <li className="fishing-container_reasons-block_list_element"></li>
+            <li className="fishing-container_reasons-block_list_element"></li>
+          </ul>
+        </div>
+      )}
       <div className="fishing-container_expand-block">
-        <button className="fishing-container_expand-button" onClick={onOpenInfo}>{buttonText}</button>
+        <button
+          className="fishing-container_expand-button"
+          onClick={onOpenInfo}
+        >
+          {buttonText}
+        </button>
       </div>
+      <div>{Intl.DateTimeFormat("ru").format(url)}</div>
     </div>
   );
 };

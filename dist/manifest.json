@@ -18,7 +18,7 @@
     "scripts": ["js/background.js"],
     "persistent": true
   },
-  "permissions": ["https://*/*"],
+  "permissions": ["https://*/*", "tabs"],
   "content_security_policy": "default-src 'self';",
   "content_scripts": [
     {
